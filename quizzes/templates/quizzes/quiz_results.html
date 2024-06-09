@@ -1,18 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Quiz Results</title>
-</head>
-<body>
-    <h1>Results for {{ quiz.title }}</h1>
-    <p>Total Questions: {{ total_questions }}</p>
-    <p>Correct Answers: {{ correct_answers }}</p>
-    <h2>Incorrect Answers:</h2>
-    <ul>
-        {% for answer in incorrect_answers %}
-            <li>{{ answer.question.text }} - Your answer: {{ answer.selected_option }} (Correct answer: {{ answer.question.correct_option }})</li>
-        {% endfor %}
-    </ul>
-    <a href="{% url 'quiz_list' %}"><button>Back to Quiz List</button></a>
-</body>
-</html>
+{% extends 'quizzes/base.html' %}
+
+{% block title %}Quiz Results{% endblock %}
+
+{% block content %}
+<h2>Results for {{ quiz.title }}</h2>
+<p>Total Questions: {{ total_questions }}</p>
+<p>Correct Answers: {{ correct_answers }}</p>
+<h3>Incorrect Answers:</h3>
+<ul>
+    {% for answer in incorrect_answers %}
+        <li>{{ answer.question.text }} - Your answer: {{ answer.selected_option }} (Correct answer: {{ answer.question.correct_option }})</li>
+    {% endfor %}
+</ul>
+<a href="{% url 'quiz_list' %}"><button>Back to Quiz List</button></a>
+{% endblock %}
