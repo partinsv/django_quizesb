@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ quiz.title }}</title>
+</head>
+<body>
+    <h1>{{ quiz.title }}</h1>
+    <p>{{ quiz.description }}</p>
+    <ul>
+        {% for question in questions %}
+            <li><a href="{% url 'question_detail' quiz.id question.id %}">{{ question.text }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

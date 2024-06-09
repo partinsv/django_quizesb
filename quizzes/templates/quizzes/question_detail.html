@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ question.text }}</title>
+</head>
+<body>
+    <h1>{{ question.text }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        <input type="radio" name="answer" value="{{ question.option1 }}" required> {{ question.option1 }}<br>
+        <input type="radio" name="answer" value="{{ question.option2 }}"> {{ question.option2 }}<br>
+        <input type="radio" name="answer" value="{{ question.option3 }}"> {{ question.option3 }}<br>
+        <input type="radio" name="answer" value="{{ question.option4 }}"> {{ question.option4 }}<br>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
