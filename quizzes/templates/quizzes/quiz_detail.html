@@ -5,9 +5,17 @@
 {% block content %}
 <h2>{{ quiz.title }}</h2>
 <p>{{ quiz.description }}</p>
-<ul>
+<form method="post">
+    {% csrf_token %}
     {% for question in questions %}
-        <li><a href="{% url 'question_detail' quiz.id question.id %}">{{ question.text }}</a></li>
+        <div class="question">
+            <h3>{{ question.text }}</h3>
+            <input type="radio" name="question_{{ question.id }}" value="{{ question.option1 }}" required> {{ question.option1 }}<br>
+            <input type="radio" name="question_{{ question.id }}" value="{{ question.option2 }}"> {{ question.option2 }}<br>
+            <input type="radio" name="question_{{ question.id }}" value="{{ question.option3 }}"> {{ question.option3 }}<br>
+            <input type="radio" name="question_{{ question.id }}" value="{{ question.option4 }}"> {{ question.option4 }}<br>
+        </div>
     {% endfor %}
-</ul>
+    <button type="submit">Submit Answers</button>
+</form>
 {% endblock %}

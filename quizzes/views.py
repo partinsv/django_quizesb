@@ -8,28 +8,19 @@ def quiz_list(request):
 def quiz_detail(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
     questions = quiz.question_set.all()
-    return render(request, 'quizzes/quiz_detail.html', {'quiz': quiz, 'questions': questions})
 
-def question_detail(request, quiz_id, question_id):
-    question = get_object_or_404(Question, id=question_id, quiz_id=quiz_id)
-    
     if request.method == 'POST':
-        selected_option = request.POST.get('answer')
-        correct = selected_option == question.correct_option
-        UserAnswer.objects.create(
-            question=question,
-            selected_option=selected_option,
-            correct=correct
-        )
-
-        next_question = Question.objects.filter(quiz_id=quiz_id, id__gt=question_id).first()
-        
-        if next_question:
-            return redirect('question_detail', quiz_id=quiz_id, question_id=next_question.id)
-        else:
-            return redirect('quiz_results', quiz_id=quiz_id)
+        for question in questions:
+            selected_option = request.POST.get(f'question_{question.id}')
+            correct = selected_option == question.correct_option
+            UserAnswer.objects.create(
+                question=question,
+                selected_option=selected_option,
+                correct=correct
+            )
+        return redirect('quiz_results', quiz_id=quiz_id)
     
-    return render(request, 'quizzes/question_detail.html', {'question': question})
+    return render(request, 'quizzes/quiz_detail.html', {'quiz': quiz, 'questions': questions})
 
 def quiz_results(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
