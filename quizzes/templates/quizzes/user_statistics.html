@@ -1,0 +1,26 @@
+{% extends 'quizzes/base.html' %}
+
+{% block title %}My Statistics{% endblock %}
+
+{% block content %}
+<h2>My Statistics</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Quiz</th>
+            <th>Total Questions</th>
+            <th>Correct Answers</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for result in user_results %}
+            <tr>
+                <td>{{ result.quiz.title }}</td>
+                <td>{{ result.total_questions }}</td>
+                <td>{{ result.correct_answers }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'quiz_list' %}"><button>Back to Quiz List</button></a>
+{% endblock %}

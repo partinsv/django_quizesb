@@ -8,9 +8,11 @@
 <p>Correct Answers: {{ correct_answers }}</p>
 <h3>Incorrect Answers:</h3>
 <ul>
-    {% for answer in incorrect_answers %}
+    {% for answer in incorrect_answers_details %}
         <li>{{ answer.question.text }} - Your answer: {{ answer.selected_option }} (Correct answer: {{ answer.question.correct_option }})</li>
+        <p>Difficulty: {{ answer.question.get_difficulty_display }}</p>
     {% endfor %}
 </ul>
 <a href="{% url 'quiz_list' %}"><button>Back to Quiz List</button></a>
+<a href="{% url 'user_statistics' %}"><button>View My Statistics</button></a>
 {% endblock %}

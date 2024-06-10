@@ -10,6 +10,7 @@
     {% for question in questions %}
         <div class="question">
             <h3>{{ question.text }}</h3>
+            <p>Difficulty: {{ question.get_difficulty_display }}</p>
             <input type="radio" name="question_{{ question.id }}" value="{{ question.option1 }}" required> {{ question.option1 }}<br>
             <input type="radio" name="question_{{ question.id }}" value="{{ question.option2 }}"> {{ question.option2 }}<br>
             <input type="radio" name="question_{{ question.id }}" value="{{ question.option3 }}"> {{ question.option3 }}<br>
