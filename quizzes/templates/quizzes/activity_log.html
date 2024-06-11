@@ -1,0 +1,26 @@
+{% extends 'quizzes/base.html' %}
+
+{% block title %}User Activity Log{% endblock %}
+
+{% block content %}
+<h2>User Activity Log</h2>
+<table>
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Activity</th>
+            <th>Timestamp</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+            <tr>
+                <td>{{ log.user.username }}</td>
+                <td>{{ log.activity }}</td>
+                <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'quiz_list' %}"><button>Back to Quiz List</button></a>
+{% endblock %}

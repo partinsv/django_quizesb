@@ -45,3 +45,11 @@ class UserQuizResult(models.Model):
 
     def __str__(self):
         return f'{self.user.username} - {self.quiz.title} - {self.correct_answers}/{self.total_questions}'
+
+class UserActivityLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    activity = models.CharField(max_length=255)
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f'{self.user.username} - {self.activity} - {self.timestamp}'

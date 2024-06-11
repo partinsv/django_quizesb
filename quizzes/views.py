@@ -3,10 +3,15 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.utils import timezone
-from .models import Quiz, Question, UserAnswer, UserQuizResult
+from .models import Quiz, Question, UserAnswer, UserQuizResult, UserActivityLog
 import random
 
+def log_user_activity(user, activity):
+    UserActivityLog.objects.create(user=user, activity=activity)
+
 def quiz_list(request):
+    if request.user.is_authenticated:
+        log_user_activity(request.user, "Viewed quiz list")
     quizzes = Quiz.objects.all()
     return render(request, 'quizzes/quiz_list.html', {'quizzes': quizzes})
 
@@ -30,8 +35,10 @@ def quiz_detail(request, quiz_id):
                 'correct': selected_option == question.correct_option
             }
         request.session['user_answers'] = user_answers
+        log_user_activity(request.user, f"Submitted answers for quiz {quiz.title}")
         return redirect('quiz_results', quiz_id=quiz_id)
 
+    log_user_activity(request.user, f"Started quiz {quiz.title}")
     return render(request, 'quizzes/quiz_detail.html', {'quiz': quiz, 'questions': questions})
 
 @login_required
@@ -61,6 +68,7 @@ def quiz_results(request, quiz_id):
     request.session.pop('user_answers', None)
     request.session.pop('questions', None)
 
+    log_user_activity(request.user, f"Completed quiz {quiz.title}")
     return render(request, 'quizzes/quiz_results.html', {
         'quiz': quiz,
         'total_questions': total_questions,
@@ -70,6 +78,7 @@ def quiz_results(request, quiz_id):
 
 @login_required
 def user_statistics(request):
+    log_user_activity(request.user, "Viewed user statistics")
     user_results = UserQuizResult.objects.filter(user=request.user).order_by('-completed_at')
     return render(request, 'quizzes/user_statistics.html', {'user_results': user_results})
 
@@ -80,6 +89,7 @@ def register(request):
             form.save()
             username = form.cleaned_data.get('username')
             messages.success(request, f'Your account has been created! You are now able to log in')
+            log_user_activity(request.user, "Registered a new account")
             return redirect('login')
     else:
         form = UserCreationForm()
@@ -87,5 +97,13 @@ def register(request):
 
 @login_required
 def profile(request):
+    log_user_activity(request.user, "Viewed profile")
     user_results = UserQuizResult.objects.filter(user=request.user).order_by('-completed_at')
     return render(request, 'registration/profile.html', {'user_results': user_results})
+
+@login_required
+def activity_log(request):
+    if not request.user.is_staff:
+        return redirect('quiz_list')
+    logs = UserActivityLog.objects.all().order_by('-timestamp')
+    return render(request, 'quizzes/activity_log.html', {'logs': logs})
