@@ -1,5 +1,6 @@
-from django.contrib.auth.models import User
 from django.db import models
+from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Quiz(models.Model):
     title = models.CharField(max_length=200)
@@ -40,6 +41,7 @@ class UserQuizResult(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
     total_questions = models.IntegerField()
     correct_answers = models.IntegerField()
+    completed_at = models.DateTimeField(default=timezone.now)  # Поле для хранения времени прохождения
 
     def __str__(self):
         return f'{self.user.username} - {self.quiz.title} - {self.correct_answers}/{self.total_questions}'

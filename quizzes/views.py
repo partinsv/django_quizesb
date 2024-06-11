@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
+from django.utils import timezone
 from .models import Quiz, Question, UserAnswer, UserQuizResult
 import random
 
@@ -53,7 +54,8 @@ def quiz_results(request, quiz_id):
         user=request.user,
         quiz=quiz,
         total_questions=total_questions,
-        correct_answers=correct_answers
+        correct_answers=correct_answers,
+        completed_at=timezone.now()
     )
 
     request.session.pop('user_answers', None)
@@ -68,7 +70,7 @@ def quiz_results(request, quiz_id):
 
 @login_required
 def user_statistics(request):
-    user_results = UserQuizResult.objects.filter(user=request.user)
+    user_results = UserQuizResult.objects.filter(user=request.user).order_by('-completed_at')
     return render(request, 'quizzes/user_statistics.html', {'user_results': user_results})
 
 def register(request):
@@ -85,5 +87,5 @@ def register(request):
 
 @login_required
 def profile(request):
-    user_results = UserQuizResult.objects.filter(user=request.user)
+    user_results = UserQuizResult.objects.filter(user=request.user).order_by('-completed_at')
     return render(request, 'registration/profile.html', {'user_results': user_results})

@@ -10,6 +10,7 @@
             <th>Quiz</th>
             <th>Total Questions</th>
             <th>Correct Answers</th>
+            <th>Date Completed</th>
         </tr>
     </thead>
     <tbody>
@@ -18,6 +19,7 @@
                 <td>{{ result.quiz.title }}</td>
                 <td>{{ result.total_questions }}</td>
                 <td>{{ result.correct_answers }}</td>
+                <td>{{ result.completed_at|date:"Y-m-d H:i:s" }}</td>
             </tr>
         {% endfor %}
     </tbody>
