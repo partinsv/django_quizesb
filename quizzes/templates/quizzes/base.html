@@ -2,38 +2,47 @@
 <html>
 <head>
     {% load static %}
-    <title>{% block title %}Quiz Site{% endblock %}</title>
+    <title>{% block title %}Quizescb{% endblock %}</title>
     <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+    <style>
+        .logout-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <h1>Quiz Site</h1>
+        <h1>Quizescb</h1>
         <nav>
             <ul>
                 <li><a href="{% url 'quiz_list' %}">Home</a></li>
                 {% if user.is_authenticated %}
                     <li><a href="{% url 'profile' %}">Profile</a></li>
-                    <li>
-                        <form method="post" action="{% url 'logout' %}">
-                            {% csrf_token %}
-                            <button type="submit">Logout</button>
-                        </form>
-                    </li>
+                    {% if user.is_staff %}
+                        <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                    {% endif %}
                 {% else %}
                     <li><a href="{% url 'login' %}">Login</a></li>
                     <li><a href="{% url 'register' %}">Register</a></li>
                 {% endif %}
-                {% if user.is_authenticated and user.is_staff %}
-                    <li><a href="{% url 'admin:index' %}">Admin</a></li>
-                {% endif %}
             </ul>
         </nav>
+        {% if user.is_authenticated %}
+            <div class="logout-button">
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit">Logout</button>
+                </form>
+            </div>
+        {% endif %}
     </header>
     <main>
         {% block content %}{% endblock %}
     </main>
     <footer>
-        <p>&copy; 2024 Quiz Site</p>
+        <p>&copy; 2024 Quizescb</p>
     </footer>
 </body>
 </html>
