@@ -1,21 +1,50 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone  # Добавьте этот импорт
-from .models import Quiz, Question, Answer, UserAnswer, UserQuizResult, UserActivityLog
+from django.utils import timezone
+from .models import Quiz, Question, Answer, UserAnswer, UserQuizResult, UserActivityLog, Organization, Department, UserProfile, QuizAccess
+from .forms import UserRegisterForm
 import random
 
 def log_user_activity(user, activity):
     UserActivityLog.objects.create(user=user, activity=activity)
 
+@login_required
 def quiz_list(request):
-    if request.user.is_authenticated:
-        log_user_activity(request.user, "Viewed quiz list")
-    quizzes = Quiz.objects.all()
+    user = request.user
+    try:
+        user_organization = user.userprofile.organization
+        user_department = user.userprofile.department
+    except UserProfile.DoesNotExist:
+        messages.error(request, "Your profile is not set up correctly.")
+        return redirect('profile')
+
+    log_user_activity(user, "Viewed quiz list")
+
+    if user_department:
+        quiz_access = QuizAccess.objects.filter(organization=user_organization, department=user_department)
+    else:
+        quiz_access = QuizAccess.objects.filter(organization=user_organization, department__isnull=True)
+
+    quizzes = Quiz.objects.filter(quizaccess__in=quiz_access).distinct()
+
     return render(request, 'quizzes/quiz_list.html', {'quizzes': quizzes})
 
 @login_required
 def quiz_detail(request, quiz_id):
-    quiz = get_object_or_404(Quiz, id=quiz_id)
+    user = request.user
+    try:
+        user_organization = user.userprofile.organization
+        user_department = user.userprofile.department
+    except UserProfile.DoesNotExist:
+        messages.error(request, "Your profile is not set up correctly.")
+        return redirect('profile')
+
+    if user_department:
+        quiz = get_object_or_404(Quiz, id=quiz_id, quizaccess__organization=user_organization, quizaccess__department=user_department)
+    else:
+        quiz = get_object_or_404(Quiz, id=quiz_id, quizaccess__organization=user_organization, quizaccess__department__isnull=True)
+
     if 'questions' not in request.session:
         all_questions = list(quiz.question_set.all())
         random.shuffle(all_questions)
@@ -43,7 +72,19 @@ def quiz_detail(request, quiz_id):
 
 @login_required
 def quiz_results(request, quiz_id):
-    quiz = get_object_or_404(Quiz, id=quiz_id)
+    user = request.user
+    try:
+        user_organization = user.userprofile.organization
+        user_department = user.userprofile.department
+    except UserProfile.DoesNotExist:
+        messages.error(request, "Your profile is not set up correctly.")
+        return redirect('profile')
+
+    if user_department:
+        quiz = get_object_or_404(Quiz, id=quiz_id, quizaccess__organization=user_organization, quizaccess__department=user_department)
+    else:
+        quiz = get_object_or_404(Quiz, id=quiz_id, quizaccess__organization=user_organization, quizaccess__department__isnull=True)
+
     user_answers = request.session.get('user_answers', {})
     total_questions = len(user_answers)
     correct_answers = sum(1 for answer in user_answers.values() if answer['correct'])
@@ -91,19 +132,25 @@ def activity_log(request):
 
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = UserRegisterForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            organization = form.cleaned_data.get('organization')
+            department = form.cleaned_data.get('department')
+            if not hasattr(user, 'userprofile'):
+                UserProfile.objects.create(user=user, organization=organization, department=department)
             username = form.cleaned_data.get('username')
             messages.success(request, f'Your account has been created! You are now able to log in')
-            log_user_activity(request.user, "Registered a new account")
             return redirect('login')
     else:
-        form = UserCreationForm()
+        form = UserRegisterForm()
     return render(request, 'registration/register.html', {'form': form})
 
 @login_required
 def profile(request):
-    log_user_activity(request.user, "Viewed profile")
-    user_results = UserQuizResult.objects.filter(user=request.user).order_by('-completed_at')
+    user = request.user
+    if not hasattr(user, 'userprofile'):
+        UserProfile.objects.create(user=user)
+    log_user_activity(user, "Viewed profile")
+    user_results = UserQuizResult.objects.filter(user=user).order_by('-completed_at')
     return render(request, 'registration/profile.html', {'user_results': user_results})
