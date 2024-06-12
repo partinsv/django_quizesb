@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone  # Добавьте этот импорт
 from .models import Quiz, Question, Answer, UserAnswer, UserQuizResult, UserActivityLog
 import random
 
@@ -21,7 +22,7 @@ def quiz_detail(request, quiz_id):
         questions = all_questions[:2]
         request.session['questions'] = [q.id for q in questions]
     else:
-        questions = Question.objects.filter(id__in=request.session['questions'])
+        questions = Question.objects.filter(id__in=request.session['questions'], quiz=quiz)
 
     if request.method == 'POST':
         user_answers = request.session.get('user_answers', {})
