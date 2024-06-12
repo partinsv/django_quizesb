@@ -2,13 +2,49 @@
 <html>
 <head>
     <title>Logout</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .logout-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        .logout-container h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+        .logout-container p {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        .logout-container a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .logout-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <h2>Logout</h2>
-    <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit">Logout</button>
-    </form>
-    <p>You have been logged out. <a href="{% url 'login' %}">Login again?</a></p>
+    <div class="logout-container">
+        <h2>Logout</h2>
+        <p>You have been logged out. <a href="{% url 'login' %}">Login again?</a></p>
+    </div>
 </body>
 </html>

@@ -3,6 +3,7 @@
 <head>
     {% load static %}
     <title>{% block title %}Quizescb{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
     <style>
         .logout-button {
@@ -13,19 +14,29 @@
     </style>
 </head>
 <body>
-    <header>
+    <header class="bg-primary text-white text-center py-3">
         <h1>Quizescb</h1>
         <nav>
-            <ul>
-                <li><a href="{% url 'quiz_list' %}">Home</a></li>
+            <ul class="nav justify-content-center">
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'quiz_list' %}">Home</a>
+                </li>
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'profile' %}">Profile</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'profile' %}">Profile</a>
+                    </li>
                     {% if user.is_staff %}
-                        <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{% url 'admin:index' %}">Admin</a>
+                        </li>
                     {% endif %}
                 {% else %}
-                    <li><a href="{% url 'login' %}">Login</a></li>
-                    <li><a href="{% url 'register' %}">Register</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'login' %}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'register' %}">Register</a>
+                    </li>
                 {% endif %}
             </ul>
         </nav>
@@ -33,16 +44,19 @@
             <div class="logout-button">
                 <form method="post" action="{% url 'logout' %}">
                     {% csrf_token %}
-                    <button type="submit">Logout</button>
+                    <button class="btn btn-danger" type="submit">Logout</button>
                 </form>
             </div>
         {% endif %}
     </header>
-    <main>
+    <main class="container mt-5">
         {% block content %}{% endblock %}
     </main>
-    <footer>
+    <footer class="bg-light text-center py-3 mt-5">
         <p>&copy; 2024 Quizescb</p>
     </footer>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -3,14 +3,16 @@
 {% block title %}My Profile{% endblock %}
 
 {% block content %}
-<div class="profile-container">
-    <h2>My Profile</h2>
-    <div class="profile-info">
-        <p><strong>Username:</strong> {{ user.username }}</p>
+<div class="container">
+    <h2 class="text-center my-4">My Profile</h2>
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Username:</strong> {{ user.username }}</p>
+        </div>
     </div>
-    <h3>My Quiz Statistics</h3>
-    <table class="profile-table">
-        <thead>
+    <h3 class="text-center mb-4">My Quiz Statistics</h3>
+    <table class="table table-bordered table-hover">
+        <thead class="thead-light">
             <tr>
                 <th>Quiz</th>
                 <th>Total Questions</th>
@@ -29,6 +31,8 @@
             {% endfor %}
         </tbody>
     </table>
-    <a href="{% url 'quiz_list' %}" class="button">Back to Quiz List</a>
+    <div class="text-center mt-4">
+        <a href="{% url 'quiz_list' %}" class="btn btn-primary">Back to Quiz List</a>
+    </div>
 </div>
 {% endblock %}
