@@ -3,24 +3,28 @@
 {% block title %}User Activity Log{% endblock %}
 
 {% block content %}
-<h2>User Activity Log</h2>
-<table>
-    <thead>
-        <tr>
-            <th>User</th>
-            <th>Activity</th>
-            <th>Timestamp</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for log in logs %}
+<div class="container">
+    <h2 class="text-center my-4">User Activity Log</h2>
+    <table class="table table-bordered table-hover">
+        <thead class="thead-light">
             <tr>
-                <td>{{ log.user.username }}</td>
-                <td>{{ log.activity }}</td>
-                <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                <th>User</th>
+                <th>Activity</th>
+                <th>Timestamp</th>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<a href="{% url 'quiz_list' %}"><button>Back to Quiz List</button></a>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+                <tr>
+                    <td>{{ log.user.username }}</td>
+                    <td>{{ log.activity }}</td>
+                    <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="text-center mt-4">
+        <a href="{% url 'quiz_list' %}" class="btn btn-primary">Back to Quiz List</a>
+    </div>
+</div>
 {% endblock %}

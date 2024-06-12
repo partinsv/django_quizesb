@@ -1,9 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
-from django.utils import timezone
-from .models import Quiz, Question, UserAnswer, UserQuizResult, UserActivityLog
+from .models import Quiz, Question, Answer, UserAnswer, UserQuizResult, UserActivityLog
 import random
 
 def log_user_activity(user, activity):
@@ -29,10 +26,12 @@ def quiz_detail(request, quiz_id):
     if request.method == 'POST':
         user_answers = request.session.get('user_answers', {})
         for question in questions:
-            selected_option = request.POST.get(f'question_{question.id}')
+            selected_answers = request.POST.getlist(f'question_{question.id}')
+            selected_answer_objs = Answer.objects.filter(id__in=selected_answers)
+            correct = all(ans.is_correct for ans in selected_answer_objs) and len(selected_answer_objs) > 0
             user_answers[str(question.id)] = {
-                'selected_option': selected_option,
-                'correct': selected_option == question.correct_option
+                'selected_answers': [ans.id for ans in selected_answer_objs],
+                'correct': correct
             }
         request.session['user_answers'] = user_answers
         log_user_activity(request.user, f"Submitted answers for quiz {quiz.title}")
@@ -54,7 +53,7 @@ def quiz_results(request, quiz_id):
     for question in incorrect_questions:
         incorrect_answers_details.append({
             'question': question,
-            'selected_option': incorrect_answers[str(question.id)]['selected_option']
+            'selected_answers': Answer.objects.filter(id__in=incorrect_answers[str(question.id)]['selected_answers'])
         })
 
     UserQuizResult.objects.create(
@@ -82,6 +81,13 @@ def user_statistics(request):
     user_results = UserQuizResult.objects.filter(user=request.user).order_by('-completed_at')
     return render(request, 'quizzes/user_statistics.html', {'user_results': user_results})
 
+@login_required
+def activity_log(request):
+    if not request.user.is_staff:
+        return redirect('quiz_list')
+    logs = UserActivityLog.objects.all().order_by('-timestamp')
+    return render(request, 'quizzes/activity_log.html', {'logs': logs})
+
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -100,10 +106,3 @@ def profile(request):
     log_user_activity(request.user, "Viewed profile")
     user_results = UserQuizResult.objects.filter(user=request.user).order_by('-completed_at')
     return render(request, 'registration/profile.html', {'user_results': user_results})
-
-@login_required
-def activity_log(request):
-    if not request.user.is_staff:
-        return redirect('quiz_list')
-    logs = UserActivityLog.objects.all().order_by('-timestamp')
-    return render(request, 'quizzes/activity_log.html', {'logs': logs})
