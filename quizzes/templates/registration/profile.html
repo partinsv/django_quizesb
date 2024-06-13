@@ -1,38 +1,23 @@
-{% extends 'quizzes/base.html' %}
-
-{% block title %}My Profile{% endblock %}
+{% extends "quizzes/base.html" %}
 
 {% block content %}
-<div class="container">
-    <h2 class="text-center my-4">My Profile</h2>
-    <div class="card mb-4">
-        <div class="card-body">
-            <p><strong>Username:</strong> {{ user.username }}</p>
-        </div>
+  <h2 class="text-center">Profile</h2>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Username: {{ user.username }}</h5>
+      <p class="card-text">Email: {{ user.email }}</p>
+      <h5 class="card-title">Quiz Statistics</h5>
+      {% if user.quiz_statistics %}
+        <ul class="list-group">
+          {% for stat in user.quiz_statistics %}
+            <li class="list-group-item">
+              Quiz: {{ stat.quiz.title }} - Score: {{ stat.score }} - Date: {{ stat.date }}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No quiz statistics available.</p>
+      {% endif %}
     </div>
-    <h3 class="text-center mb-4">My Quiz Statistics</h3>
-    <table class="table table-bordered table-hover">
-        <thead class="thead-light">
-            <tr>
-                <th>Quiz</th>
-                <th>Total Questions</th>
-                <th>Correct Answers</th>
-                <th>Date Completed</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for result in user_results %}
-                <tr>
-                    <td>{{ result.quiz.title }}</td>
-                    <td>{{ result.total_questions }}</td>
-                    <td>{{ result.correct_answers }}</td>
-                    <td>{{ result.completed_at|date:"Y-m-d H:i:s" }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <div class="text-center mt-4">
-        <a href="{% url 'quiz_list' %}" class="btn btn-primary">Back to Quiz List</a>
-    </div>
-</div>
+  </div>
 {% endblock %}
