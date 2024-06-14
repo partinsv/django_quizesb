@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Quiz Site</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        .animation-container {
+            text-align: center;
+        }
+        .animation-text {
+            font-size: 2rem;
+            color: #343a40;
+            animation: fadeIn 2s infinite alternate;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .animation-text:hover {
+            color: #6e7175;
+        }
+        .hidden {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0.1;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="animation-container">
+        <div class="animation-text hidden" id="welcome-text">Welcome to Quiz Site</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var welcomeText = document.getElementById('welcome-text');
+            setTimeout(function() {
+                welcomeText.classList.remove('hidden');
+                welcomeText.addEventListener('click', function() {
+                    window.location.href = '/quizzes/';
+                });
+            }, 0); // 5 seconds delay
+        });
+    </script>
+</body>
+</html>
