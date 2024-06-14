@@ -36,6 +36,8 @@ class Quiz(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
+    is_exam = models.BooleanField(default=False)  # Добавленное поле
+    duration = models.IntegerField(default=10)  # Duration in minutes
 
     def __str__(self):
         return self.title
@@ -101,3 +103,16 @@ class QuizAccess(models.Model):
 
     def __str__(self):
         return f"{self.organization.name} - {self.department.name if self.department else 'All Departments'}"
+
+class UserExamAccess(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    granted_at = models.DateTimeField(default=timezone.now)
+    completed_at = models.DateTimeField(null=True, blank=True)  # Новое поле
+    score = models.FloatField(null=True, blank=True)  # Новое поле
+
+    class Meta:
+        unique_together = ('user', 'quiz')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.quiz.title}"

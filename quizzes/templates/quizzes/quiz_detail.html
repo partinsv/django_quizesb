@@ -5,6 +5,9 @@
 {% block content %}
 <div class="container">
     <h2 class="text-center my-4">{{ quiz.title }}</h2>
+    <div id="timer" class="text-right mb-3">
+        Time Remaining: <span id="time">{{ remaining_time|add:"0" }}</span> seconds
+    </div>
     <form method="post">
         {% csrf_token %}
         <div class="mb-4">
@@ -26,4 +29,20 @@
         <button type="submit" class="btn btn-success btn-block">Submit Answers</button>
     </form>
 </div>
+
+<script>
+    var remaining_time = {{ remaining_time|add:"0" }};
+    function startTimer() {
+        var timer = document.getElementById('time');
+        var interval = setInterval(function() {
+            remaining_time--;
+            timer.textContent = remaining_time;
+            if (remaining_time <= 0) {
+                clearInterval(interval);
+                document.forms[0].submit();
+            }
+        }, 1000);
+    }
+    startTimer();
+</script>
 {% endblock %}

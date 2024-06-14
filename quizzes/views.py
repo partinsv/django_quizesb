@@ -2,10 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from .models import Quiz, Question, Answer, UserAnswer, UserQuizResult, UserActivityLog, Organization, Department, UserProfile, QuizAccess
+from .models import Quiz, Question, Answer, UserAnswer, UserQuizResult, UserActivityLog, Organization, Department, UserProfile, QuizAccess, UserExamAccess
 from .forms import UserRegisterForm
 import random
 
+# Функция для логирования активности пользователя
 def log_user_activity(user, activity):
     UserActivityLog.objects.create(user=user, activity=activity)
 
@@ -33,6 +34,14 @@ def quiz_list(request):
 @login_required
 def quiz_detail(request, quiz_id):
     user = request.user
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+
+    if quiz.is_exam:
+        access = UserExamAccess.objects.filter(user=user, quiz=quiz).exists()
+        if not access:
+            messages.error(request, "You do not have access to this exam.")
+            return redirect('quiz_list')
+
     try:
         user_organization = user.userprofile.organization
         user_department = user.userprofile.department
@@ -45,15 +54,14 @@ def quiz_detail(request, quiz_id):
     else:
         quiz = get_object_or_404(Quiz, id=quiz_id, quizaccess__organization=user_organization, quizaccess__department__isnull=True)
 
-    if 'questions' not in request.session:
-        all_questions = list(quiz.question_set.all())
-        random.shuffle(all_questions)
-        questions = all_questions[:2]
-        request.session['questions'] = [q.id for q in questions]
-    else:
-        questions = Question.objects.filter(id__in=request.session['questions'], quiz=quiz)
-
-    if request.method == 'POST':
+    if 'start_time' not in request.session:
+        request.session['start_time'] = str(timezone.now())
+    
+    start_time = timezone.datetime.fromisoformat(request.session['start_time'])
+    elapsed_time = timezone.now() - start_time
+    remaining_time = max(quiz.duration * 60 - elapsed_time.total_seconds(), 0)
+    
+    if request.method == 'POST' or remaining_time == 0:
         user_answers = request.session.get('user_answers', {})
         for question in questions:
             selected_answers = request.POST.getlist(f'question_{question.id}')
@@ -64,11 +72,24 @@ def quiz_detail(request, quiz_id):
                 'correct': correct
             }
         request.session['user_answers'] = user_answers
+        request.session.pop('start_time', None)
         log_user_activity(request.user, f"Submitted answers for quiz {quiz.title}")
         return redirect('quiz_results', quiz_id=quiz_id)
 
+    if 'questions' not in request.session:
+        all_questions = list(quiz.question_set.all())
+        random.shuffle(all_questions)
+        questions = all_questions[:2]
+        request.session['questions'] = [q.id for q in questions]
+    else:
+        questions = Question.objects.filter(id__in=request.session['questions'], quiz=quiz)
+
     log_user_activity(request.user, f"Started quiz {quiz.title}")
-    return render(request, 'quizzes/quiz_detail.html', {'quiz': quiz, 'questions': questions})
+    return render(request, 'quizzes/quiz_detail.html', {
+        'quiz': quiz,
+        'questions': questions,
+        'remaining_time': remaining_time,
+    })
 
 @login_required
 def quiz_results(request, quiz_id):
@@ -154,3 +175,89 @@ def profile(request):
     log_user_activity(user, "Viewed profile")
     user_results = UserQuizResult.objects.filter(user=user).order_by('-completed_at')
     return render(request, 'registration/profile.html', {'user_results': user_results})
+
+@login_required
+@login_required
+def exam_list(request):
+    user = request.user
+    try:
+        user_profile = user.userprofile
+        user_organization = user_profile.organization
+        user_department = user_profile.department
+    except UserProfile.DoesNotExist:
+        messages.error(request, "Your profile is not set up correctly.")
+        return redirect('profile')
+
+    log_user_activity(user, "Viewed exam list")
+
+    if user_department:
+        exam_access = QuizAccess.objects.filter(organization=user_organization, department=user_department)
+    else:
+        exam_access = QuizAccess.objects.filter(organization=user_organization, department__isnull=True)
+
+    exams = Quiz.objects.filter(quizaccess__in=exam_access, is_exam=True).distinct()
+
+    return render(request, 'quizzes/exam_list.html', {'exams': exams})
+
+@login_required
+
+def quiz_detail(request, quiz_id):
+    user = request.user
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+
+    if quiz.is_exam:
+        access = UserExamAccess.objects.filter(user=user, quiz=quiz).exists()
+        if not access:
+            messages.error(request, "You do not have access to this exam.")
+            return redirect('exam_list')
+
+    try:
+        user_profile = user.userprofile
+        user_organization = user_profile.organization
+        user_department = user_profile.department
+    except UserProfile.DoesNotExist:
+        messages.error(request, "Your profile is not set up correctly.")
+        return redirect('profile')
+
+    if user_department:
+        quiz = get_object_or_404(Quiz, id=quiz_id, quizaccess__organization=user_organization, quizaccess__department=user_department)
+    else:
+        quiz = get_object_or_404(Quiz, id=quiz_id, quizaccess__organization=user_organization, quizaccess__department__isnull=True)
+
+    if 'start_time' not in request.session:
+        request.session['start_time'] = str(timezone.now())
+    
+    start_time = timezone.datetime.fromisoformat(request.session['start_time'])
+    elapsed_time = timezone.now() - start_time
+    remaining_time = max(quiz.duration * 60 - elapsed_time.total_seconds(), 0)
+
+    if 'questions' not in request.session:
+        all_questions = list(quiz.question_set.all())
+        random.shuffle(all_questions)
+        questions = all_questions[:2]
+        request.session['questions'] = [q.id for q in questions]
+    else:
+        questions = Question.objects.filter(id__in=request.session['questions'], quiz=quiz)
+
+    if request.method == 'POST' or remaining_time == 0:
+        user_answers = request.session.get('user_answers', {})
+        for question in questions:
+            selected_answers = request.POST.getlist(f'question_{question.id}')
+            selected_answer_objs = Answer.objects.filter(id__in=selected_answers)
+            correct = all(ans.is_correct for ans in selected_answer_objs) and len(selected_answer_objs) > 0
+            user_answers[str(question.id)] = {
+                'selected_answers': [ans.id for ans in selected_answer_objs],
+                'correct': correct
+            }
+        request.session['user_answers'] = user_answers
+        request.session.pop('start_time', None)
+        request.session.pop('questions', None)
+        log_user_activity(request.user, f"Submitted answers for quiz {quiz.title}")
+        return redirect('quiz_results', quiz_id=quiz_id)
+
+    log_user_activity(request.user, f"Started quiz {quiz.title}")
+    return render(request, 'quizzes/quiz_detail.html', {
+        'quiz': quiz,
+        'questions': questions,
+        'remaining_time': remaining_time,
+    })

@@ -1,0 +1,16 @@
+{% extends "quizzes/base.html" %}
+
+{% block content %}
+  <h2 class="text-center">Exam List</h2>
+  {% if exams %}
+    <div class="list-group">
+      {% for exam in exams %}
+        <a href="{% url 'quiz_detail' exam.id %}" class="list-group-item list-group-item-action">
+          {{ exam.title }}
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-center">No exams available.</p>
+  {% endif %}
+{% endblock %}

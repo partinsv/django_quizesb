@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Organization, Department, UserProfile, Quiz, Question, Answer, UserAnswer, UserQuizResult, UserActivityLog, QuizAccess
+from .models import Organization, Department, UserProfile, Quiz, Question, Answer, UserAnswer, UserQuizResult, UserActivityLog, QuizAccess, UserExamAccess
 
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = ('name',)
@@ -28,11 +28,18 @@ class QuestionAdmin(admin.ModelAdmin):
 
 class QuizAdmin(admin.ModelAdmin):
     inlines = [QuestionInline]
+    list_display = ['title', 'is_exam', 'duration']
+    list_filter = ['is_exam', 'duration']
 
 class QuizAccessAdmin(admin.ModelAdmin):
     list_display = ('organization', 'department')
     list_filter = ('organization', 'department')
     filter_horizontal = ('quizzes',)  # For ManyToManyField
+
+class UserExamAccessAdmin(admin.ModelAdmin):
+    list_display = ('user', 'quiz', 'granted_at')
+    list_filter = ('quiz', 'user')
+    search_fields = ('user__username', 'quiz__title')
 
 admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(Department, DepartmentAdmin)
@@ -44,3 +51,4 @@ admin.site.register(UserAnswer)
 admin.site.register(UserQuizResult)
 admin.site.register(UserActivityLog)
 admin.site.register(QuizAccess, QuizAccessAdmin)
+admin.site.register(UserExamAccess, UserExamAccessAdmin)
