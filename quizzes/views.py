@@ -80,12 +80,15 @@ def quiz_detail(request, quiz_id):
     else:
         quiz = get_object_or_404(Quiz, id=quiz_id, quizaccess__organization=user_organization, quizaccess__department__isnull=True)
 
-    if 'start_time' not in request.session:
-        request.session['start_time'] = str(timezone.now())
-    
-    start_time = timezone.datetime.fromisoformat(request.session['start_time'])
-    elapsed_time = timezone.now() - start_time
-    remaining_time = max(quiz.duration * 60 - elapsed_time.total_seconds(), 0)
+    if quiz.is_exam:
+        if 'start_time' not in request.session:
+            request.session['start_time'] = str(timezone.now())
+        
+        start_time = timezone.datetime.fromisoformat(request.session['start_time'])
+        elapsed_time = timezone.now() - start_time
+        remaining_time = max(quiz.duration * 60 - elapsed_time.total_seconds(), 0)
+    else:
+        remaining_time = None
 
     if 'questions' not in request.session:
         all_questions = list(quiz.question_set.all())
@@ -95,7 +98,7 @@ def quiz_detail(request, quiz_id):
     else:
         questions = Question.objects.filter(id__in=request.session['questions'], quiz=quiz)
 
-    if request.method == 'POST' or remaining_time == 0:
+    if request.method == 'POST' or (quiz.is_exam and remaining_time == 0):
         user_answers = request.session.get('user_answers', {})
         for question in questions:
             selected_answers = request.POST.getlist(f'question_{question.id}')
@@ -112,7 +115,13 @@ def quiz_detail(request, quiz_id):
         return redirect('quiz_results', quiz_id=quiz_id)
 
     log_user_activity(request.user, f"Started quiz {quiz.title}")
-    return render(request, 'quizzes/quiz_detail.html', {
+    
+    if quiz.is_exam:
+        template_name = 'quizzes/exam_detail.html'
+    else:
+        template_name = 'quizzes/quiz_detail.html'
+
+    return render(request, template_name, {
         'quiz': quiz,
         'questions': questions,
         'remaining_time': remaining_time,
