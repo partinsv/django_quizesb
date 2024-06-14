@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Quiz Site{% endblock %}</title>
-    <link id="theme-stylesheet" rel="stylesheet" href="{% static 'light.css' %}">
+    <link rel="stylesheet" href="{% static 'light.css' %}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         .navbar {
@@ -16,37 +16,11 @@
             padding: 10px 0;
             text-align: center;
         }
-        .switch-theme-btn {
-            background: none;
-            border: none;
-            color: inherit;
-            font: inherit;
-            cursor: pointer;
-        }
     </style>
-    <script>
-        function switchTheme() {
-            const currentTheme = document.getElementById('theme-stylesheet').getAttribute('href');
-            const newTheme = currentTheme === '{% static "light.css" %}' ? '{% static "dark.css" %}' : '{% static "light.css" %}';
-            document.getElementById('theme-stylesheet').setAttribute('href', newTheme);
-            document.cookie = `theme=${newTheme}; path=/`;
-        }
-
-        window.onload = function() {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.startsWith('theme=')) {
-                    const theme = cookie.split('=')[1];
-                    document.getElementById('theme-stylesheet').setAttribute('href', theme);
-                }
-            }
-        }
-    </script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Quizescb</a>
+        <a class="navbar-brand" href="{% url 'quiz_list' %}">Quizescb</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -63,9 +37,6 @@
                         {% csrf_token %}
                         <button type="submit" class="nav-link btn btn-link" style="display: inline; cursor: pointer;">Logout</button>
                     </form>
-                </li>
-                <li class="nav-item">
-                    <button class="switch-theme-btn nav-link" onclick="switchTheme()">Switch Theme</button>
                 </li>
                 {% if user.is_staff %}
                 <li class="nav-item">
